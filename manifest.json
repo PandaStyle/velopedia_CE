@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+
+  "name": "Velopedia",
+  "description": "Daily virtual watts!",
+  "version": "1.0",
+
+  "chrome_url_overrides" : {
+     "newtab": "html/index.html"
+  },
+
+  "permissions": [
+    "http://velopedia.meteor.com/getposts/"
+  ]
+}

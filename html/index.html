@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Velopedia Chrome extension</title>
+      <link rel="stylesheet" href="/css/lib/normalize.css"/>
+      <link rel="stylesheet" href="/css/lib/salvattore.css"/>
+      <link rel="stylesheet" href="/css/lib/spinner.css"/>
+      <link rel="stylesheet" href="/css/styles.css"/>
+      <link rel="stylesheet" href="/css/velopedia.css"/>
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: http://developer.chrome.com/extensions/contentSecurityPolicy.html
+     -->
+    <script src="../js/lib/jquery-2.1.1.min.js"></script>
+    <script src="../js/lib/underscore-min.js"></script>
+    <script src="../js/lib/salvattore.js"></script>
+    <script src="../js/lib/imagesloaded.pkgd.min.js"></script>
+    <script src="../js/index.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+          <a href="/" class="logo"><img src="/assets/img/Velopedia-logo.png" alt=""/></a>
+          <div class="buttons">
+              <div class="list-button  header-icon flaticon-text146"><span class="icon-title">CyclingTips</span><i class="flaticon-arrow483 downarrow"></i></div>
+              <div class="grid-button header-icon flaticon-phone336"><span class="icon-title">Tumblr</span><i class="flaticon-arrow483 downarrow"></i></div>
+          </div>
+      </div>
+    </header>
+
+
+    <div class="left">
+        <div class="news"></div>
+    </div>
+   <!-- <div class="cont">
+        <a class="title" href="{{link}}">{{title}}</a>
+    </div>
+-->
+    <div class="right">
+        <div class="tumblr" id="container" data-columns>></div>
+    </div>
+
+
+    <div class="loading">
+        <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+        </div>
+        <div class="txt"> Loading </div>
+    </div>
+  </body>
+</html>
+
