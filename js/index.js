@@ -1,10 +1,11 @@
+var postsOffset = 0;
 
-var a = new Date();
-// Run our kitten generation script as soon as the document's DOM is ready.
+
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('domready');
+    console.log('domready in ' + ((new Date().getTime()) - (a.getTime()))+ "ms");
 
-    getPosts(0);
+    getNews(roadCCRSS);
+    getPosts(postsOffset);
 
     $(window).resize(function(){
         $('.news').height($(window).height()-90);
@@ -13,17 +14,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $(window).on("scrollstop", scrollHandler);
 
+    [].slice.call( document.querySelectorAll( 'select.cs-select' ) ).forEach( function(el) {
+        new SelectFx(el);
+    } );
+
 });
 
 
-var getPostTriggered = true,
-
-    postsOffset,
-
+var
+    getPostTriggered = true,
     smallestColumnOffset,
+    postItemCount = 20,
+    a = new Date(),
+    postIds = [],
 
-    postItemCount = 40;
+    cyclingNewsRss = 'http://feeds.feedburner.com/cyclingnews/news?format=xml',
+    cyclingTipsRss = 'http://feeds.feedburner.com/cyclingtipsblog/TJog?format=xml',
+    roadCCRSS = 'http://road.cc/all/feed';
 
+function getNews(feedUrl){
+    $.ajax({
+        type: "GET",
+        url: "http://velopedia.meteor.com/getnews",
+        data: {url: feedUrl}
+    })
+        .fail(function(err){
+            console.log(err);
+        })
+        .done(function( res ) {
+            console.log(res.length + "item arrived from " + feedUrl + " in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
+
+            var newsCont = $('.news');
+
+            for(var i=0; i < res.length; i++){
+                var fragment = $('<div class="cont">\
+                                    <a class="title" href="'+ res[i].link +'">'+ res[i].title +'</a>\
+                                  </div>');
+                newsCont.append(fragment);
+            }
+
+            console.log("news append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms")
+
+        })
+}
 
 function getPosts(o){
     $('.loading').show();
@@ -35,16 +68,16 @@ function getPosts(o){
         .done(function( results ) {
             $('.time').text(new Date() - a);
             console.log(results.length + 'items recieved with offset: ' + o );
-            console.log(results);
 
             if(o == 0){
                 salvattore.register_grid($('.tumblr')[0]);
             }
 
-            var arr = [];
-            var fragment = $('<div />');
-            for(var i=0; i < results.length; i++){
+            var counter = 0;
 
+
+            for(var i=0; i < results.length; i++){
+                postIds.push(results[i].id);
                 if(_.where(results[i].photos[0].alt_sizes, {width: 400}).length>0){
                     var url = _.where(results[i].photos[0].alt_sizes, {width: 400})[0].url;
                 } else {
@@ -55,28 +88,42 @@ function getPosts(o){
                                 <img src="' + url + '" alt=""/>\
                                 </div>');
 
-                fragment.append(item);
-                arr.push(item[0]);
+                item.imagesLoaded()
+                    .done(function(c,b){
+                        $('.loading').hide();
+
+                        salvattore.append_elements($('.tumblr')[0], [c.elements[0]]);
+
+                        counter++;
+
+                        if(counter == postItemCount){
+                            console.log("last item appended in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
+                            onFinish();
+                        }
+                    });
+
+
 
             };
 
-            fragment.imagesLoaded().done(function(a, b){
-                /*  for(var i=0; i < arr.length; i++){
-                 salvattore.append_elements($('.tumblr')[0], [arr[i]]);
-                 }*/
-
-
-                salvattore.append_elements($('.tumblr')[0], arr);
-
-
-                getColumnHeights();
+            function onFinish(){
+                var c = _.sortBy(postIds);
+                for(var i = 0; i < c.length; i ++){
+                   if([i] == c[i++]){
+                       console.log('IDENTITITI');
+                   }
+                }
 
                 $(window).on("scrollstop", scrollHandler);getPostTriggered = true;
-                $('.loading').hide();
+
+                console.log("posts append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
+
 
                 getPostTriggered = true;
-                postsOffset += 40;
-            });
+                postsOffset += postItemCount;
+
+                setColumnHeights();
+            };
         });
 
 
@@ -84,23 +131,26 @@ function getPosts(o){
 }
 
 function scrollHandler() {
+
     var b = $(window).scrollTop() + $(window).height();
     if (b >= smallestColumnOffset || b >= $(document).height() ) {
         $(window).off("scrollstop");
 
         if(getPostTriggered){
             getPostTriggered = false;
-
             getPosts(postsOffset);
 
         }
     };
 }
 
-function getColumnHeights() {
+function setColumnHeights() {
     for (var b = $(".column"), c = null, d = 0, e = b.length; e > d; d++) {
         var f = $(b[d]);
+        null == c ? (c = f.height(), smallestColumnOffset = f.children("div").last().offset().top + f.children("div").last().height() / 2) : c > f.height() && (c = f.height(), smallestColumnOffset = f.children("div").last().offset().top + f.children("div").last().height() / 2)
     }
 }
+
+
 
 

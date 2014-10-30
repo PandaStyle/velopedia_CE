@@ -5,8 +5,11 @@
       <link rel="stylesheet" href="/css/lib/normalize.css"/>
       <link rel="stylesheet" href="/css/lib/salvattore.css"/>
       <link rel="stylesheet" href="/css/lib/spinner.css"/>
+      <link rel="stylesheet" href="/css/lib/cs-select.css"/>
+      <link rel="stylesheet" href="/css/lib/cs-skin-border.css"/>
       <link rel="stylesheet" href="/css/styles.css"/>
       <link rel="stylesheet" href="/css/velopedia.css"/>
+
     <!--
       - JavaScript and HTML must be in separate files: see our Content Security
       - Policy documentation[1] for details and explanation.
@@ -17,6 +20,9 @@
     <script src="../js/lib/underscore-min.js"></script>
     <script src="../js/lib/salvattore.js"></script>
     <script src="../js/lib/imagesloaded.pkgd.min.js"></script>
+    <script src="../js/lib/jquery.scrollstop.js"></script>
+    <script src="../js/lib/classie.js"></script>
+    <script src="../js/lib/selectFx.js"></script>
     <script src="../js/index.js"></script>
   </head>
   <body>
@@ -26,7 +32,14 @@
           <div class="buttons">
               <div class="list-button  header-icon flaticon-text146"><span class="icon-title">CyclingTips</span><i class="flaticon-arrow483 downarrow"></i></div>
               <div class="grid-button header-icon flaticon-phone336"><span class="icon-title">Tumblr</span><i class="flaticon-arrow483 downarrow"></i></div>
+              <select class="cs-select cs-skin-border">
+                  <option value="" disabled selected>Preferred contact method</option>
+                  <option value="email">E-Mail</option>
+                  <option value="twitter">Twitter</option>
+                  <option value="linkedin">LinkedIn</option>
+              </select>
           </div>
+
       </div>
     </header>
 
@@ -34,12 +47,10 @@
     <div class="left">
         <div class="news"></div>
     </div>
-   <!-- <div class="cont">
-        <a class="title" href="{{link}}">{{title}}</a>
-    </div>
--->
+
+
     <div class="right">
-        <div class="tumblr" id="container" data-columns>></div>
+        <div class="tumblr" id="container" data-columns></div>
     </div>
 
 

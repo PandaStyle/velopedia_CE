@@ -10,6 +10,8 @@
   },
 
   "permissions": [
-    "http://velopedia.meteor.com/getposts/"
+    "http://velopedia.meteor.com/getPosts",
+    "http://velopedia.meteor.com/getNews"
   ]
+
 }
