@@ -1,38 +1,86 @@
-var postsOffset = 0;
+var postsOffset = 0,
+    selectedRss = 0;
 
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('domready in ' + ((new Date().getTime()) - (a.getTime()))+ "ms");
 
-    getNews(roadCCRSS);
+    getNews(rss[Object.keys(rss)[selectedRss]]);
     getPosts(postsOffset);
 
     $(window).resize(function(){
         $('.news').height($(window).height()-90);
-        $('.loading').width($(window).width()-400);
     });
 
+    $('.loading').css('top', ($(window).height()-350)/2);
+
+    $(window).on("scrollstart", function(){ $('body').addClass('disable-hover');});
     $(window).on("scrollstop", scrollHandler);
 
-    [].slice.call( document.querySelectorAll( 'select.cs-select' ) ).forEach( function(el) {
-        new SelectFx(el);
-    } );
+
+
+    $('.header-icon').click(function(){
+        selectedRss += 1;
+        if(selectedRss == 4){
+            selectedRss = 0;
+        }
+        getNews(rss[Object.keys(rss)[selectedRss]]);
+    })
 
 });
 
 
 var
+    serverUrl = "http://velopedia.meteor.com/getposts",
+    //serverUrl = "http://localhost:3000/getposts",
+
     getPostTriggered = true,
     smallestColumnOffset,
     postItemCount = 20,
     a = new Date(),
     postIds = [],
 
-    cyclingNewsRss = 'http://feeds.feedburner.com/cyclingnews/news?format=xml',
-    cyclingTipsRss = 'http://feeds.feedburner.com/cyclingtipsblog/TJog?format=xml',
-    roadCCRSS = 'http://road.cc/all/feed';
+    appendedItems = [],
 
-function getNews(feedUrl){
+    DELAYVALUE = 0.05;
+
+    rss = {
+        cyclingtips: {
+            url: 'http://feeds.feedburner.com/cyclingtipsblog/TJog?format=xml',
+            title: 'Cycling Tips',
+            img: '../assets/img/cyclingtips.jpg'
+        },
+        cyclingnews: {
+            url: 'http://feeds.feedburner.com/cyclingnews/news?format=xml',
+            title: 'Cycling News',
+            img: '../assets/img/cyclingnews.jpg'
+        },
+        velodaily: {
+            url: 'http://www.velodaily.com/feed/',
+            title: 'Velo Daily',
+            img: '../assets/img/velodaily.jpg'
+        },
+        roadcc: {
+            url: 'http://road.cc/all/feed',
+            title: 'Road.cc',
+            img: '../assets/img/roadcc.png'
+        }
+
+    };
+
+
+function getNews(obj){
+
+    var feedUrl = obj.url;
+        spinner = $('.header > .spinner');
+
+    $('.header > img, .header > .txt').fadeOut(100);
+
+    $('.news').fadeOut(100);
+
+    spinner.fadeIn(100);
+
+
     $.ajax({
         type: "GET",
         url: "http://velopedia.meteor.com/getnews",
@@ -44,30 +92,45 @@ function getNews(feedUrl){
         .done(function( res ) {
             console.log(res.length + "item arrived from " + feedUrl + " in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
 
-            var newsCont = $('.news');
+            var newsCont = $('.news').empty().show();
 
             for(var i=0; i < res.length; i++){
                 var fragment = $('<div class="cont">\
                                     <a class="title" href="'+ res[i].link +'">'+ res[i].title +'</a>\
                                   </div>');
-                newsCont.append(fragment);
+
+                var trd = i*0.1 + 's';
+                newsCont.append(fragment.css({'transition-delay': trd}));
+                //debugger;
+
+
             }
 
-            console.log("news append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms")
+            spinner.fadeOut(100);
 
+            $('.header > img').attr('src', obj.img).fadeIn(300);
+            $('.header > .txt').html(obj.title).fadeIn(300);
+
+            setTimeout(function(){
+                newsCont.find('.cont').css({ 'opacity': '1',
+                    '-webkit-transform': 'translate3d(0,0,0)',
+                    'transform': 'translate3d(0,0,0)' });
+            }, 200);
+
+            console.log("news append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
         })
 }
 
 function getPosts(o){
-    $('.loading').show();
+    var postTime = new Date();
 
-    $.get( "http://velopedia.meteor.com/getposts", {offset: o})
+    $.get( serverUrl, {offset: o})
         .fail(function(err){
             console.log(error);
         })
         .done(function( results ) {
-            $('.time').text(new Date() - a);
-            console.log(results.length + 'items recieved with offset: ' + o );
+            console.log(results);
+            console.log(results.length + ' image with offset: ' + o + ' in ' + ((new Date().getTime()) - (postTime.getTime())) + ' ms');
 
             if(o == 0){
                 salvattore.register_grid($('.tumblr')[0]);
@@ -75,6 +138,7 @@ function getPosts(o){
 
             var counter = 0;
 
+            appendedItems = [];
 
             for(var i=0; i < results.length; i++){
                 postIds.push(results[i].id);
@@ -84,29 +148,35 @@ function getPosts(o){
                     continue;
                 }
 
-                var item = $(' <div class="box item">\
-                                <img src="' + url + '" alt=""/>\
+                var item = $('<div class="box item">\
+                                <div class="overlay"></div>\
+                                <img src="' + url + '" alt=""/> \
+                                <span class="blogname">' + results[i].blog_name  + '</span> \
+                                <span class="notecount">' + results[i].note_count  + '</span> \
                                 </div>');
 
                 item.imagesLoaded()
                     .done(function(c,b){
-                        $('.loading').hide();
-
                         salvattore.append_elements($('.tumblr')[0], [c.elements[0]]);
+
+                        var delay = DELAYVALUE * counter;
+
+                        $(c.elements[0]).css({"transition-delay": delay + "s","-webkit-transition-delay": delay + "s"})
+
+                        appendedItems.push($(c.elements[0]));
 
                         counter++;
 
                         if(counter == postItemCount){
-                            console.log("last item appended in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
                             onFinish();
                         }
-                    });
-
-
+                });
 
             };
 
             function onFinish(){
+                $('.loading').remove();
+
                 var c = _.sortBy(postIds);
                 for(var i = 0; i < c.length; i ++){
                    if([i] == c[i++]){
@@ -114,9 +184,13 @@ function getPosts(o){
                    }
                 }
 
+                for(var i =0; i < appendedItems.length; i++){
+                    appendedItems[i].css({"-webkit-transform": "translateY(0)","-moz-transform": "translateY(0)","-ms-transform": "translateY(0)","-o-transform": "translateY(0)",transform: "translateY(0)",opacity: 1});
+                }
+
                 $(window).on("scrollstop", scrollHandler);getPostTriggered = true;
 
-                console.log("posts append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
+                console.log("images loaded and appended, in " + ((new Date().getTime()) - (postTime.getTime()))+ "ms");
 
 
                 getPostTriggered = true;
@@ -131,9 +205,10 @@ function getPosts(o){
 }
 
 function scrollHandler() {
+    $('body').removeClass('disable-hover');
 
     var b = $(window).scrollTop() + $(window).height();
-    if (b >= smallestColumnOffset || b >= $(document).height() ) {
+    if (b >= (smallestColumnOffset - ($(document).height()/5)) || b >= $(document).height() ) {
         $(window).off("scrollstop");
 
         if(getPostTriggered){
