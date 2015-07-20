@@ -1,6 +1,7 @@
 var postsOffset = 0,
     selectedRss = 0;
 
+NProgress.start();
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('domready in ' + ((new Date().getTime()) - (a.getTime()))+ "ms");
@@ -68,7 +69,7 @@ var
 
     };
 
-
+NProgress.inc();
 function getNews(obj){
 
     var feedUrl = obj.url;
@@ -96,8 +97,19 @@ function getNews(obj){
 
             for(var i=0; i < res.length; i++){
                 var fragment = $('<div class="cont">\
+                <div class="holder">\
+                    <div class="image">\
+                        <img class="site" src="../assets/img/' + res[i].site + '.jpg"/>\
+                    </div>\
+                    <div class="links">\
                                     <a class="title" href="'+ res[i].link +'">'+ res[i].title +'</a>\
-                                  </div>');
+                                    <div>\
+                                    <a class="url" href="'+ res[i].link +'">' + res[i].shortSiteName + '</a> \
+                                    <span class="time">' + res[i].diff + ' ago</span>\
+                                    </div>\
+                                    </div>\
+                    </div>\
+                </div>');
 
                 var trd = i*0.1 + 's';
                 newsCont.append(fragment.css({'transition-delay': trd}));
@@ -117,6 +129,7 @@ function getNews(obj){
                     'transform': 'translate3d(0,0,0)' });
             }, 200);
 
+            NProgress.inc();
             console.log("news append ready in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
         })
 }
@@ -140,23 +153,32 @@ function getPosts(o){
 
             appendedItems = [];
 
+            var loaded = 0;
+
             for(var i=0; i < results.length; i++){
                 postIds.push(results[i].id);
                 if(_.where(results[i].photos[0].alt_sizes, {width: 400}).length>0){
                     var url = _.where(results[i].photos[0].alt_sizes, {width: 400})[0].url;
+                } else if(_.where(results[i].photos[0].alt_sizes, {width: 399}).length>0){
+                    var url = _.where(results[i].photos[0].alt_sizes, {width: 399})[0].url;
                 } else {
+                    console.log("Image doesn't have 400 or 399 width ", results[i]);
                     continue;
                 }
 
                 var item = $('<div class="box item">\
-                                <div class="overlay"></div>\
+                                <div class="overlay">\
+                                <div class="lay"></div>\
+                                <i class="flaticon-logotype1 nameicon"></i> <span class="blogname">' + results[i].blog_name  + '</span> \
+                                </div>\
                                 <img src="' + url + '" alt=""/> \
-                                <span class="blogname">' + results[i].blog_name  + '</span> \
-                                <span class="notecount">' + results[i].note_count  + '</span> \
                                 </div>');
 
                 item.imagesLoaded()
                     .done(function(c,b){
+
+                        console.log(loaded++);
+                        console.log($(c.elements[0]).find('img').attr('src'));
                         salvattore.append_elements($('.tumblr')[0], [c.elements[0]]);
 
                         var delay = DELAYVALUE * counter;
@@ -166,11 +188,14 @@ function getPosts(o){
                         appendedItems.push($(c.elements[0]));
 
                         counter++;
-
+                        NProgress.inc();
                         if(counter == postItemCount){
                             onFinish();
                         }
-                });
+                    })
+                    .fail (function( instance ) {
+                        console.log('imagesLoaded failed for ', instance);
+                    });
 
             };
 
@@ -191,7 +216,7 @@ function getPosts(o){
                 $(window).on("scrollstop", scrollHandler);getPostTriggered = true;
 
                 console.log("images loaded and appended, in " + ((new Date().getTime()) - (postTime.getTime()))+ "ms");
-
+                NProgress.done();
 
                 getPostTriggered = true;
                 postsOffset += postItemCount;
