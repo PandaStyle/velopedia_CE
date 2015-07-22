@@ -6,7 +6,7 @@ NProgress.start();
 document.addEventListener('DOMContentLoaded', function () {
     console.log('domready in ' + ((new Date().getTime()) - (a.getTime()))+ "ms");
 
-    getNews(rss[Object.keys(rss)[selectedRss]]);
+    getNews();
     getPosts(postsOffset);
 
     $(window).resize(function(){
@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 var
-    serverUrl = "http://velopedia.meteor.com/getposts",
-    //serverUrl = "http://localhost:3000/getposts",
+    //serverUrl = "http://velopedia.meteor.com/getposts",
+    serverUrl = "http://localhost:8000",
 
     getPostTriggered = true,
     smallestColumnOffset,
@@ -45,34 +45,24 @@ var
 
     DELAYVALUE = 0.05;
 
-    rss = {
-        cyclingtips: {
-            url: 'http://feeds.feedburner.com/cyclingtipsblog/TJog?format=xml',
-            title: 'Cycling Tips',
-            img: '../assets/img/cyclingtips.jpg'
-        },
-        cyclingnews: {
-            url: 'http://feeds.feedburner.com/cyclingnews/news?format=xml',
-            title: 'Cycling News',
-            img: '../assets/img/cyclingnews.jpg'
-        },
-        velodaily: {
-            url: 'http://www.velodaily.com/feed/',
-            title: 'Velo Daily',
-            img: '../assets/img/velodaily.jpg'
-        },
-        roadcc: {
-            url: 'http://road.cc/all/feed',
-            title: 'Road.cc',
-            img: '../assets/img/roadcc.png'
-        }
 
-    };
+
+function getNewsInfo(feedname){
+    var dict = {
+        "Cycling Tips": ["cyclingTips.jpg", "cyclingnews.com"],
+        "road.cc": ["roadCc.jpg", "road.cc"],
+        "Cyclingnews Latest News": ["cyclingNews.jpg", "cyclingnews.com"],
+        "Road Bike Action": ["roadBikeAction.jpg", "roadbikeaction.com"],
+        "Roadcycling.com - Cycling info as it should be": ["roadCycling.jpg", "roadcycling.com"]
+    }
+
+    return dict[feedname];
+}
 
 NProgress.inc();
-function getNews(obj){
+function getNews(){
 
-    var feedUrl = obj.url;
+    var
         spinner = $('.header > .spinner');
 
     $('.header > img, .header > .txt').fadeOut(100);
@@ -84,14 +74,13 @@ function getNews(obj){
 
     $.ajax({
         type: "GET",
-        url: "http://velopedia.meteor.com/getnews",
-        data: {url: feedUrl}
+        url: serverUrl + "/getnews"
     })
         .fail(function(err){
             console.log(err);
         })
         .done(function( res ) {
-            console.log(res.length + "item arrived from " + feedUrl + " in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
+            console.log(res.length + "item arrived in " + ((new Date().getTime()) - (a.getTime()))+ "ms");
 
             var newsCont = $('.news').empty().show();
 
@@ -99,12 +88,12 @@ function getNews(obj){
                 var fragment = $('<div class="cont">\
                 <div class="holder">\
                     <div class="image">\
-                        <img class="site" src="../assets/img/' + res[i].site + '.jpg"/>\
+                        <img class="site" src="../assets/img/' + getNewsInfo(res[i].feed.name)[0] +'"/>\
                     </div>\
                     <div class="links">\
                                     <a class="title" href="'+ res[i].link +'">'+ res[i].title +'</a>\
                                     <div>\
-                                    <a class="url" href="'+ res[i].link +'">' + res[i].shortSiteName + '</a> \
+                                    <a class="url" href="'+ res[i].link +'">' + getNewsInfo(res[i].feed.name)[1] + '</a> \
                                     <span class="time">' + res[i].diff + ' ago</span>\
                                     </div>\
                                     </div>\
@@ -117,11 +106,7 @@ function getNews(obj){
 
 
             }
-
             spinner.fadeOut(100);
-
-            $('.header > img').attr('src', obj.img).fadeIn(300);
-            $('.header > .txt').html(obj.title).fadeIn(300);
 
             setTimeout(function(){
                 newsCont.find('.cont').css({ 'opacity': '1',
@@ -137,11 +122,12 @@ function getNews(obj){
 function getPosts(o){
     var postTime = new Date();
 
-    $.get( serverUrl, {offset: o})
+    $.get( serverUrl + "/getposts/" + o)
         .fail(function(err){
             console.log(error);
         })
         .done(function( results ) {
+            var results = results.posts;
             console.log(results);
             console.log(results.length + ' image with offset: ' + o + ' in ' + ((new Date().getTime()) - (postTime.getTime())) + ' ms');
 
